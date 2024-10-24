@@ -19,7 +19,7 @@ pipeline {
         stage('pull git image') {
           steps {
            script {
-             checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/elitekaycy/advanced-java/week4/ci']])
+             checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/elitekaycy/ci-jenkins']])
           }
         }
       }
