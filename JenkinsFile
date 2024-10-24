@@ -1,0 +1,56 @@
+pipeline {
+    agent any
+
+    tools {
+        jdk 'jdk-21'
+        maven '3.9.5'
+      }
+
+    environment {
+        REGISTRY = 'hub.docker.com'
+        REGISTRY_USR = 'elitekaycy'
+        REGISTRY_CREDENTIALS = credentials('dockerhub') 
+        SERVER_CRED = credentials('servercred')
+        BUILD_ID = 'latest'
+    }
+
+
+    stages {
+        stage('pull git image') {
+          steps {
+           script {
+             checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/elitekaycy/advanced-java/week4/ci']])
+          }
+        }
+      }
+
+    stage('Build Docker Images') {
+      steps {
+        script {
+          sh 'docker build -f DockerFile . -t ${REGISTRY_USR}/ci:${BUILD_ID}'
+        }
+      }
+    }
+
+    stage('Push Docker Images') {
+      steps {
+        script {
+             withCredentials([usernamePassword(credentialsId: 'dockerhub', passwordVariable: 'pwd', usernameVariable: 'username')]) {
+                 sh "echo ${pwd} | docker login -u ${username} --password-stdin"
+                 sh "docker push ${REGISTRY_USR}/ci:${BUILD_ID}"
+           }
+          }
+        }
+      }
+
+
+ }
+
+
+ post {
+    always {
+      sh 'docker logout'
+      cleanWs()
+    }
+  }
+}
